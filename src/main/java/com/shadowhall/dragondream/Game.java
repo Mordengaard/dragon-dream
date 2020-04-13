@@ -16,17 +16,6 @@ public class Game {
     public static void main(String[] _args) {
         initialiseGame();
     }
-
-    /* test data produced this layout
-      N
-      + 0 1 2 3 4 X
-      0 ! . . . .
-      1 % % % % ^
-      2 % % & % %
-      3 % % % % %
-      4 = # = @ =
-      Y
-    */
        
     private static void initialiseGame() {
         rnjesus = new Random();
@@ -44,20 +33,3 @@ public class Game {
     } // initialiseGaame
     
 }
-
-    /* this was used for initial testing and setting up the data files
-                // rough and ready initialisation
-                if(x==0 || y==0 || x==MAX_X-1 || y==MAX_Y-1) {
-                    map[x][y].setName("beach");
-                    map[x][y].setDescription("You are standing on a beach of beautiful but monotonous golden sand that surrounds the island on all sides."); // surprisingly square island
-                } else
-                if(x==MAX_X/2 && y==MAX_Y/2) {
-                    map[x][y].setName("lava lake");
-                    map[x][y].setDescription("At the center of the island sits a lava lake, but it is nearly dormant.\nA cradle of impossibly thin metal holds a huge DRAGON EGG suspended over the lake.");
-                } else                
-                if(x>0 && x<MAX_X-1 && y>0 && y<MAX_X-1) {
-                    map[x][y].setName("forest");
-                    map[x][y].setDescription("The interior of the island is choked with a surprisingly dense and steamy forest.");
-                }
-                world[x][y].saveLocation();                   
-    */
