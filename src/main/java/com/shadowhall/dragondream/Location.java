@@ -3,34 +3,32 @@ package com.shadowhall.dragondream;
 import java.io.*;
 import java.util.*;
 
-public class Location implements Serializable {
-    
-    final static String SAVE_DIR = "world/";
-    
-    private String name;
-    private String description;
+// some Containers are actually Locations
+public class Location extends Container implements Serializable {
+
+    // properties
     private Map details;
-    private static Item[] inventory; // static so location inventory isn't serialized
-    private final transient String filename; // transient
+    private final transient String filename; // transient (non-serialized)
     
+    // constructor
     protected Location(int _x, int _y) {
-        filename = SAVE_DIR + String.format("%dx%d.loc",_x,_y);       
-        inventory = new Item[0];
-        name = "a featureless void";
-        description = "A featureless void.";
+        filename = Game.SAVE_DIR + String.format("%dx%d.loc",_x,_y);       
+        shortName = "a featureless void";
+        longDesc = "A featureless void.";
         details = new HashMap();
         loadLocation();
     }
-    
+        
+    // serialise/deserialise methods
     private void loadLocation() {
         try (FileInputStream file = new FileInputStream(filename); ObjectInputStream in = new ObjectInputStream(file)) {
             Location data;
             data = (Location)in.readObject();
             //System.out.println("Location loaded from " + filename);           
-            this.name = data.name;
-            this.description = data.description;
+            this.shortName = data.shortName;
+            this.longDesc = data.longDesc;
             this.details = data.details;
-        } catch(IOException|ClassNotFoundException ex) {
+        } catch (IOException|ClassNotFoundException ex) {
             System.out.println("Load error: " + ex.getMessage());
         } 
     }
@@ -42,30 +40,11 @@ public class Location implements Serializable {
             file.close();
             System.out.println("Location saved as " + filename);
         }
-        catch(IOException ex) {
+        catch (IOException ex) {
             System.out.println("Save error: " + ex.getMessage());
         }
     }
-        
-    protected void setName(String _name) {
-        name = _name;
-        saveLocation();
-    }
-    
-    protected String getName() {
-        return name;
-        // return name + " (" + filename + ")";
-    }
-    
-    protected void setDescription(String _description) {
-        description = _description;
-        saveLocation();
-    }
-
-    protected String getDescription() {
-        return description;
-    }
-    
+              
     protected void addDetail(String _keyword, String _text) {
         details.put(_keyword, _text);
         saveLocation();
@@ -79,7 +58,4 @@ public class Location implements Serializable {
         details.remove(_keyword);
         saveLocation();
     }
-      
-    // itemDropped event handler
-    // itemPickedUp event handler
 }
