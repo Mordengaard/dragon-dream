@@ -10,6 +10,7 @@ public class Living extends Thing {
     
     // constructor
     public Living() {
+        
         shortName = "living thing";
         longDesc = "This is a Living Thing.";
     }

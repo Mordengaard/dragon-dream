@@ -1,14 +1,9 @@
 package com.shadowhall.dragondream;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
 public class Boar extends Living {
     
     // properties
     private int angerLevel; // start with zero anger
-    private Timer timer;
-    private TimerTask task;
         
     // constructor   
     protected Boar() {
@@ -28,18 +23,9 @@ public class Boar extends Living {
             decreaseAnger();
             tryMove();
         }
+        System.out.println("Boar is at " + xPos + "," + yPos);
     }
-    
-    /* sort of pseudo-switch
-    switch(angerLevel) {
-        case 0 : // snuffle about
-        case 1 : // spot adventurer
-        case 2 : // charge begins
-        case 3 : // impact - bump player in a random direction
-        default : // move a random direction
-    }
-    */    
-    
+       
     private void increaseAnger() {
         if(angerLevel<3)
             ++angerLevel;

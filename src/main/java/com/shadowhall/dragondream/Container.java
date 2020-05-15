@@ -14,6 +14,7 @@ public class Container extends Thing {
     
     // constructor
     public Container() {
+        
         shortName = "container";
         longDesc = "A Container for Things.";
         contents = new ArrayList<>();
@@ -21,18 +22,26 @@ public class Container extends Thing {
     
     // Things can be removed from Containers
     protected void removeThing(Thing _thing) {
-        contents.remove(_thing);
+        if(contents.contains(_thing))
+            contents.remove(_thing);
+        else
+            System.out.println("Error attempting to remove " + _thing);
         // adjust container mass
     }
     
     // Things can be received by Containers
     protected void receiveThing(Thing _thing) {
-        contents.add(_thing);
+
+        if(!contents.contains(_thing))
+            contents.add(_thing);
+        else
+            System.out.println("Error; " + _thing + " already exists in " + this);
         // adjust container mass 
     }
 
     // Containers know if they have a Thing in them    
     protected boolean containsThing(Thing _thing) {
+
         return contents.contains(_thing);
     }
     
@@ -43,15 +52,19 @@ public class Container extends Thing {
     
     // Containers can return their whole contents list
     protected List<Thing> getContents() {
+
         return contents;
     }
     
     // Containers can generate a description of their contents
     protected String contentsDescription() {
+
         String tmpString = "";
-        for (Thing thing : contents) {
+
+        // foreach Thing in contents
+        for (Thing thing : contents)
             tmpString += thing.shortName + ", ";
-        }
+        
         // StringUtils version of substring handles null and empty strings
         tmpString = StringUtils.substring(tmpString, 0, tmpString.length()-2);
         return tmpString;

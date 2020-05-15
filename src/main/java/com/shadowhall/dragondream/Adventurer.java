@@ -8,24 +8,31 @@ import static com.shadowhall.dragondream.Game.world;
 import java.util.Scanner;
 import org.apache.commons.lang.WordUtils;    
 
-// nothing should inherit adventurer, this is our player object
+// some living things are Adventurers
+// nothing should inherit Adventurer, so it's final; this is our player object
 final class Adventurer extends Living {
 
     // properties
-    //private Item carriedItem;
     private boolean isPlaying;
     private boolean confirmEndGame;
     private int moveCounter;
     private Container inventory;
+    private Thing carriedThing;
+    private Location currentLoc;
     
     // constructor
     protected Adventurer(int _xPos, int _yPos) {
+        
         xPos = _xPos;
         yPos = _yPos;
         isPlaying = true;
         confirmEndGame = false;
-        //hasLamp = false;
+        
         moveCounter = 0;
+        
+        currentLoc = Game.world[xPos][yPos];
+        currentLoc.receiveThing(this);
+
         inputAdventurerName();
         look();
         do {
@@ -36,18 +43,23 @@ final class Adventurer extends Living {
     
     // methods
     private void inputAdventurerName() {
+        
         String input = handleInput("What is thy name, adventurer\n? ");
         if(input.equals("")) input = "Adventurer";
         this.shortName = input;
     }    
     
+    // method to handle non-custom prompted input
     private String handleInput() {
-        return handleInput("> ");
+        
+        return handleInput(": ");
     }
     
     // "i feel like this could be in adventurer... or be its own command object"
     // let's do a <command> <context> pattern
+    // overloaded method to handle custom prompts
     private String handleInput(String _text) {
+        
         Scanner scanner = new Scanner(System.in);
         System.out.print(WordUtils.wrap(_text,80));
         String input = scanner.nextLine();
@@ -56,12 +68,18 @@ final class Adventurer extends Living {
     
     // "not happy with the skip boolean, splitting out the command parser"
     private void parseCommand(String _input) {
+        
         String[] splitInput = _input.split(" ",2);
         String command = splitInput[0].toLowerCase();
         String argument;
-        if(splitInput.length==2) argument = splitInput[1];
-        else argument = "";
+
+        if(splitInput.length==2) 
+            argument = splitInput[1];
+        else 
+            argument = "";
+
         ++moveCounter;
+
         switch(command) {
             case "north"  :
             case "south"  :
@@ -101,13 +119,20 @@ final class Adventurer extends Living {
             case "drop"   : // dropItem
                             System.out.println("Command not implemented.");
                             break;
-            case "initialise" : initialiseWorld(); break;
+//            case "initialise" : initialiseWorld(); break;
             default :
                 System.out.println("Sorry, I don't understand.");
                 --moveCounter;
         }
         // reset confirmendgame flag if it's set and not confirmed
-        if(confirmEndGame && !command.equals("exit") && !command.equals("quit")) confirmEndGame = false;
+        if(confirmEndGame && !command.equals("exit") && !command.equals("quit")) 
+            confirmEndGame = false;
+    }
+    
+    private void moveTo(Location _newLoc) {
+        currentLoc.removeThing(this);
+        _newLoc.receiveThing(this);
+        currentLoc = _newLoc;
     }
     
     private void tryMove(String _direction) {
@@ -147,7 +172,11 @@ final class Adventurer extends Living {
                 System.out.println("Invalid direction '" + _direction + "'.");
         }
         if(!hasMoved) System.out.println("You cannot go that way.");
-        else look();
+        else {
+            moveTo(Game.world[xPos][yPos]);
+            look();
+            Game.boar.heartBeat();
+        }
     }
     
     protected void bump() {
@@ -174,8 +203,9 @@ final class Adventurer extends Living {
             // System.out.print("["+xPos+","+yPos+"] ");
             // System.out.println(Game.world[xPos][yPos].getName());
             
-            System.out.println(WordUtils.wrap(Game.world[xPos][yPos].longDesc, 80));
-            String tmp = Game.world[xPos][yPos].contentsDescription();
+            System.out.println(WordUtils.wrap(currentLoc.longDesc, 80));
+            
+            String tmp = currentLoc.contentsDescription();
             if(!tmp.equals("")) System.out.println(WordUtils.wrap(tmp, 80));
         }
         if(_arg.startsWith("at ")) {
@@ -212,21 +242,9 @@ final class Adventurer extends Living {
         isPlaying = false;
     }
     
-/* SPOILERS * SPOILERS * SPOILERS * SPOILERS * SPOILERS * SPOILERS * SPOILERS *\
-
-    /* 
-      N
-      + 0 1 2 3 4 X
-      0 ! . . ~ .   ! = abandoned lighthouse        . = beach
-      1 % % % ~ ^   ^ = ruined fisherman's hut      ~ = stream
-      2 % % & ~ %   & = clearing                    % = forest
-      3 # % % ~ %   # = tower                       = = cliff
-      4 = @ = ~ =   @ = dormant lava pool
-      Y
-      
-\* SPOILERS * SPOILERS * SPOILERS * SPOILERS * SPOILERS * SPOILERS * SPOILERS */
+/* SPOILERS * SPOILERS * SPOILERS * SPOILERS * SPOILERS * SPOILERS * SPOILERS */         
     
-    private static void blink() {
+    private void blink() {
         System.out.println("///////(//((((((((((/(//((,");
         System.out.println("**//*////(//(((((((((######((/((((");                                              
         System.out.println(",****/*////(((((##(########(((((((/((");                                           
@@ -258,43 +276,8 @@ final class Adventurer extends Living {
         System.out.println("                              ..,,,,,****,****/////,,***,,,..");
         System.out.println("                               ..,,,***/,*,*******,,,,,.");
         System.out.println("                                 ,,,,,");
-        
-    }
-    
-    // rough and ready initialisation
-    private static void initialiseWorld() {
-        String tempName = "";
-        String tempDesc = "";
-        for(int x=0;x<MAX_X;++x) {
-            for(int y=0;y<MAX_Y;++y) {
-                if(y==0) { // y = 0
-                    tempName = "beach";
-                    tempDesc = "You are standing on a beach of beautiful but monotonous black sand stretches across the north of the island.  To the south is a forest, and rising above it the smoking cone of a volcano.";
-                    if(x>0) tempDesc += "  At the western end of the beach you can see a tall lighthouse jutting upwards.";
-                    else tempDesc += "  A lighthouse stands here, built atop the broken basalt to ward off ships.";
-                } else if(y>0 && y<MAX_Y-2) { // y = 1 -> 3
-                    tempName = "forest";
-                    tempDesc = "The interior of the island is choked with a surprisingly dense and steamy forest. In the canopy above, birds sing descant to the drone of the biting insects that suffuse the air.";
-                } else if(y==MAX_Y-1) { // y = 4
-                    if(x==1) {
-                        tempName = "lava pool";
-                        tempDesc = "";
-                    } else {
-                        tempName = "cliff";
-                        tempDesc = "An ominous escarpment of fractured basalt looms suddenly from behind the trees, blocking further exploration south.";
-                    }
-                }
-                // put a stream running north/south
-                if(x==3) {
-                    tempName += " and stream";
-                    tempDesc += "  A slightly steaming stream of heated water gambolls northward toward the sea, here, sending slender tendrils of mist betwixt the trees.";
-                }
-                world[x][y].shortName = tempName;
-                world[x][y].longDesc = tempDesc;
-                world[x][y].saveLocation();
-                //At the center of the island sits a lava lake, but it is nearly dormant.\nA cradle of impossibly thin metal holds a huge DRAGON EGG suspended over the lake.
-            }
-        }
-    }            
+        System.out.println("You blinked, and a Weeping Angel takes your remaining Time.  Don't blink.");
+        endGame();
+    }    
 }
 
